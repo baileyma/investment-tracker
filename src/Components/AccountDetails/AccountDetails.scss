@@ -1,0 +1,32 @@
+.Details {
+  &__title-wrapper {
+    display: flex;
+  }
+  &__title {
+    font-size: 2rem;
+    width: 50%;
+  }
+
+  &__year {
+  }
+
+  &__balance-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  &__payments-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
+  &__deposited {
+    color: green;
+  }
+
+  &__withdrawn {
+    color: red;
+  }
+}

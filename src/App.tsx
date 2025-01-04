@@ -1,11 +1,18 @@
-import './App.css';
-import Overview from './Components/Overview/Overview';
+import { Routes, BrowserRouter, Route } from 'react-router-dom';
+import AccountDetails from './Components/AccountDetails/AccountDetails';
+import Header from './Components/Header/Header';
+import Home from './Components/Home/Home';
 
 function App() {
   return (
     <>
-      <h1>Investment Tracker</h1>
-      <Overview />
+      <BrowserRouter>
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/accounts/:id/:year" element={<AccountDetails />} />
+        </Routes>
+      </BrowserRouter>
     </>
   );
 }

@@ -1,7 +1,7 @@
 const Header = () => {
   return (
     <>
-      <h2>Hello</h2>
+      <nav>Invesment Tracker Website</nav>
     </>
   );
 };
