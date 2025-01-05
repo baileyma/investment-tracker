@@ -1,25 +1,45 @@
 .Details {
   &__title-wrapper {
     display: flex;
+    justify-content: space-around;
+    align-items: center;
   }
   &__title {
     font-size: 2rem;
-    width: 50%;
   }
 
   &__year {
   }
 
+  &__balance-inputs {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+  }
+
+  &__xirr {
+    text-align: center;
+  }
+
   &__balance-wrapper {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
+  }
+
+  &__payments-list {
+    width: 35%;
   }
 
   &__payments-wrapper {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
+  }
+
+  &__payment-item {
+    display: flex;
+    justify-content: space-between;
   }
 
   &__deposited {
