@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './AccountDetails.scss';
+import { Link } from 'react-router-dom';
 
 const AccountDetails = () => {
   const [payments, setPayments] = useState('');
@@ -26,7 +27,7 @@ const AccountDetails = () => {
       setAccounts(response);
     };
     fetchAccounts();
-  }, []);
+  }, [id]);
 
   const getPayments = async () => {
     try {
@@ -45,7 +46,7 @@ const AccountDetails = () => {
       setPayments(response);
     };
     fetchPayments();
-  }, []);
+  }, [id, year]);
 
   const getBalances = async () => {
     console.log('this gets called');
@@ -65,7 +66,7 @@ const AccountDetails = () => {
       setBalances(response);
     };
     fetchBalances();
-  }, []);
+  }, [id, year]);
 
   const getXIRR = async () => {
     try {
@@ -84,7 +85,7 @@ const AccountDetails = () => {
       setXIRR(response);
     };
     fetchXIRR();
-  }, []);
+  }, [id, year]);
 
   const nfObject = new Intl.NumberFormat('en-US');
 
@@ -122,6 +123,8 @@ const AccountDetails = () => {
     const response = await getBalances();
     console.log(response);
     setBalances(response);
+    const responseXIRR = await getXIRR();
+    setXIRR(responseXIRR);
     return ID;
   };
 
@@ -144,8 +147,27 @@ const AccountDetails = () => {
   return (
     <>
       <p className="Details__last-updated">
-        Latest balance: {balances[0]?.day}/{balances[0]?.month}/{year}
+        Latest balance:{' '}
+        {balances[0]?.day && balances[0]?.month
+          ? `${balances[0]?.day}/${balances[0]?.month}/${year}`
+          : 'N/A'}
       </p>
+      <Link to={`/accounts/${id}/${+year + 1}`}>
+        <button>Next Year</button>
+      </Link>
+      <Link to={`/accounts/${id}/${+year - 1}`}>
+        <button>Previous Year</button>
+      </Link>
+      <Link to={`/accounts/${+id + 1}/${year}`}>
+        <button>Next Account</button>
+      </Link>
+      <Link to={`/accounts/${+id - 1}/${year}`}>
+        <button>Previous Account</button>
+      </Link>
+
+      <Link to={`/`}>
+        <button>Back to overview</button>
+      </Link>
 
       <div className="Details__title-wrapper">
         <h2 className="Details__title">
@@ -261,28 +283,29 @@ const AccountDetails = () => {
         <div className="Details__payments-list">
           <h2>Payments</h2>
           {!payments.length && <p>No payments entered</p>}
-          {payments.map((payment) => {
-            return (
-              <>
-                <div key={payment.id} className="Details__payment-item">
-                  <h3
-                    className={
-                      payment.amount >= 0
-                        ? 'Details__deposited'
-                        : 'Details__withdrawn'
-                    }
-                  >
-                    {nfObject.format(Math.abs(payment.amount))} ---
-                    {new Date(payment.when).toLocaleDateString('en-GB')}
-                  </h3>
+          {payments &&
+            payments.map((payment) => {
+              return (
+                <>
+                  <div key={payment.id} className="Details__payment-item">
+                    <h3
+                      className={
+                        payment.amount >= 0
+                          ? 'Details__deposited'
+                          : 'Details__withdrawn'
+                      }
+                    >
+                      {nfObject.format(Math.abs(payment.amount))} ---
+                      {new Date(payment.when).toLocaleDateString('en-GB')}
+                    </h3>
 
-                  <button onClick={() => deletePayment(payment.id)}>
-                    Delete
-                  </button>
-                </div>
-              </>
-            );
-          })}
+                    <button onClick={() => deletePayment(payment.id)}>
+                      Delete
+                    </button>
+                  </div>
+                </>
+              );
+            })}
         </div>
         <div>
           <h2>Add payment</h2>
