@@ -1,50 +1,39 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 💰 Investment Tracker  
 
-Currently, two official plugins are available:
+## 📈 Easily Monitor Investment Performance Across All Accounts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🤔 The Problem 
 
-## Expanding the ESLint configuration
+Tracking how well your investments, savings, or pension pots perform each year can be **extremely complicated**. Why? Because during any given year, you’re likely to make multiple deposits into (or withdrawals from) your accounts. These transactions make it hard to determine the **actual percentage return** ('Internal Rate of Return' or 'XIRR' in finance-speak) on your investments.  
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+For example, when assessing how well your pension provider is doing for you, regular contributions into your pension make it challenging to see the wood from the trees. Maybe your pension grew last year from £10,000 to £15,000 but you made deposits into your pension during the year worth £7,000. You can imagine how someone might mistakenly think their pension provider is performing well because they are making regular payments into it! 
 
-- Configure the top-level `parserOptions` property like this:
+To calculate your **actual percentage return** (a.k.a. **XIRR**), you don't need to learn anything about all the complex things your pension is invested in. 
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+You just need **three** things:  
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+1. **📅 Starting Balance**: Your account balance on **1st January**.  
+2. **📅 Ending Balance**: Your account balance on **31st December**.  
+3. **💵 Transactions**: A record of all **deposits and withdrawals**, including their **values** and **dates**.  
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+---
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+### 🛠️ What This App Does  
+
+With this app, you can:  
+
+- **📤 Upload Data**: Add your starting and ending balances, along with all transactions for each account.  
+- **📊 Compare Accounts**: Include multiple accounts like your **ISA**, **pension pot**, or **savings**.  
+- **🤝 Add Friends & Family**: Track accounts belonging to others and see whose investments are performing the best.  
+- **👀 Monitor Providers**: Keep an eye on your pension provider’s performance and hold them accountable. 
+
+---
+
+### 🎉 Key Features  
+
+✅ Simple and intuitive process to upload balances for each account in each year.  
+✅ Compare multiple accounts across multiple years all on one dashboard.   
+
+---
+  
