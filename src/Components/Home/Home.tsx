@@ -12,9 +12,10 @@ const Home = () => {
 
   const nfObject = new Intl.NumberFormat('en-US');
 
-  // console.log(allBalances[1]['2021'][0]['end']);
-
   console.log(cumReturnsObject);
+
+  // could i make this dynamic by calling from backend or setting to current datetime property that records when there is a new year?
+  const yearsArray = [2021, 2022, 2023, 2024, 2025];
 
   useEffect(() => {
     if (Object.keys(returns).length > 0) {
@@ -170,95 +171,137 @@ const Home = () => {
   return (
     <>
       <h2>Home</h2>
-
       <h2>Accounts</h2>
-
       <div className="Home__account-wrapper">
         <p className="Home__account-column">Account Name</p>
-        <p className="Home__year-column">2021</p>
-        <p className="Home__year-column">2022</p>
-        <p className="Home__year-column">2023</p>
-        <p className="Home__year-column">2024</p>
-        <p className="Home__year-column">2025</p>
+        {yearsArray.map((year) => (
+          <p className="Home__year-column">{year}</p>
+        ))}
         <p className="Home__year-column">Since 2021</p>
       </div>
+      {accounts.map((account) => (
+        <div className="Home__account-wrapper">
+          <p key={account.id} className="Home__account-column">
+            {account.name}
+          </p>
 
-      {accounts.map((account) => {
-        return (
-          <>
-            <div className="Home__account-wrapper">
-              <p className="Home__account-column">{account.name}</p>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2021`}
+          {yearsArray.map((year) => (
+            <Link
+              className="Home__year-column"
+              to={`/accounts/${account.id}/${year}`}
+            >
+              <p
+                className={
+                  returns[account.id]?.[year] >= 0
+                    ? 'Home__positive-data'
+                    : 'Home__negative-data'
+                }
               >
-                <p
-                  className={
-                    returns[account.id]?.[2021] >= 0
-                      ? 'Home__positive-data'
-                      : 'Home__negative-data'
-                  }
-                >
-                  {returns[account.id]?.[2021] + '%' || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2022`}
-              >
-                <p
-                  className={
-                    returns[account.id]?.[2022] >= 0
-                      ? 'Home__positive-data'
-                      : 'Home__negative-data'
-                  }
-                >
-                  {returns[account.id]?.[2022] + '%' || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2023`}
-              >
-                <p
-                  className={
-                    returns[account.id]?.[2023] >= 0
-                      ? 'Home__positive-data'
-                      : 'Home__negative-data'
-                  }
-                >
-                  {returns[account.id]?.[2023] + '%' || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2024`}
-              >
-                <p
-                  className={
-                    returns[account.id]?.[2024] >= 0
-                      ? 'Home__positive-data'
-                      : 'Home__negative-data'
-                  }
-                >
-                  {returns[account.id]?.[2024] + '%' || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2025`}
-              >
-                <p
-                  className={
-                    returns[account.id]?.[2025] >= 0
-                      ? 'Home__positive-data'
-                      : 'Home__negative-data'
-                  }
-                >
-                  {returns[account.id]?.[2025] + '%' || 'N/A'}
-                </p>
-              </Link>
-              <Link
+                {returns[account.id]?.[year] + '%' || 'N/A'}
+              </p>
+            </Link>
+          ))}
+          <div className="Home__account-wrapper">
+            <p className="Home__account-column">End of year</p>
+            <Link
+              className="Home__year-column"
+              to={`/accounts/${account.id}/2021`}
+            >
+              <p>
+                {'£' +
+                  nfObject.format(
+                    allBalances?.[account.id]?.['2021']?.[0]?.['end']
+                  ) || 'N/A'}
+              </p>
+            </Link>
+            <Link
+              className="Home__year-column"
+              to={`/accounts/${account.id}/2022`}
+            >
+              <p>
+                {'£' +
+                  nfObject.format(
+                    allBalances?.[account.id]?.['2022']?.[0]?.['end']
+                  ) || 'N/A'}
+              </p>
+            </Link>
+            <Link
+              className="Home__year-column"
+              to={`/accounts/${account.id}/2023`}
+            >
+              <p>
+                {'£' +
+                  nfObject.format(
+                    allBalances?.[account.id]?.['2023']?.[0]?.['end']
+                  ) || 'N/A'}
+              </p>
+            </Link>
+            <Link
+              className="Home__year-column"
+              to={`/accounts/${account.id}/2024`}
+            >
+              <p>
+                {'£' +
+                  nfObject.format(
+                    allBalances?.[account.id]?.['2024']?.[0]?.['end']
+                  ) || 'N/A'}
+              </p>
+            </Link>
+            <Link
+              className="Home__year-column"
+              to={`/accounts/${account.id}/2025`}
+            >
+              <p>
+                {'£' +
+                  nfObject.format(
+                    allBalances?.[account.id]?.['2024']?.[0]?.['end']
+                  ) || 'N/A'}
+              </p>
+            </Link>
+            <Link
+              className="Home__year-column"
+              to={`/accounts/${account.id}/2025`}
+            >
+              <p>{'TBC' || 'N/A'}</p>
+            </Link>
+          </div>
+        </div>
+      ))}
+      ;
+      <div className="Home__account-wrapper">
+        <p className="Home__account-column">Total</p>
+
+        {yearsArray.map((year) => (
+          <p key={year} className="Home__year-column">
+            {'£' +
+              nfObject.format(
+                Object.keys(allBalances).reduce(
+                  (sum, accountId) =>
+                    sum +
+                      Number(allBalances?.[accountId]?.[year]?.[0]?.['end']) ||
+                    0,
+                  0
+                )
+              ) || 'N/A'}
+          </p>
+        ))}
+
+        <p className="Home__year-column">Total</p>
+      </div>
+      <form onSubmit={(e) => addAccount(e)}>
+        <label name="accName">Account Name</label>
+        <input name="accName" id="accName" />
+
+        <button type="submit">Submit</button>
+      </form>
+    </>
+  );
+};
+
+export default Home;
+
+{
+  /* <Link
                 className="Home__year-column"
                 to={`/accounts/${account.id}/2025`}
               >
@@ -278,6 +321,8 @@ const Home = () => {
               >
                 Delete
               </button>
+
+
               <button
                 className={
                   showDelete[account.id]
@@ -288,130 +333,5 @@ const Home = () => {
               >
                 Are you sure?
               </button>
-            </div>
-            <div className="Home__account-wrapper">
-              <p className="Home__account-column">End of year</p>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2021`}
-              >
-                <p>
-                  {'£' +
-                    nfObject.format(
-                      allBalances?.[account.id]?.['2021']?.[0]?.['end']
-                    ) || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2022`}
-              >
-                <p>
-                  {'£' +
-                    nfObject.format(
-                      allBalances?.[account.id]?.['2022']?.[0]?.['end']
-                    ) || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2023`}
-              >
-                <p>
-                  {'£' +
-                    nfObject.format(
-                      allBalances?.[account.id]?.['2023']?.[0]?.['end']
-                    ) || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2024`}
-              >
-                <p>
-                  {'£' +
-                    nfObject.format(
-                      allBalances?.[account.id]?.['2024']?.[0]?.['end']
-                    ) || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2025`}
-              >
-                <p>
-                  {'£' +
-                    nfObject.format(
-                      allBalances?.[account.id]?.['2024']?.[0]?.['end']
-                    ) || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2025`}
-              >
-                <p>{'equiv annual compound' || 'N/A'}</p>
-              </Link>
-            </div>
-          </>
-        );
-      })}
-
-      <div className="Home__account-wrapper">
-        <p className="Home__account-column">Total</p>
-
-        <p className="Home__year-column">
-          {'£' +
-            nfObject.format(
-              Number(allBalances?.['1']?.['2021']?.[0]?.['end']) +
-                Number(allBalances?.['2']?.['2021']?.[0]?.['end']) +
-                Number(allBalances?.['3']?.['2021']?.[0]?.['end']) +
-                Number(allBalances?.['4']?.['2021']?.[0]?.['end']) +
-                Number(allBalances?.['5']?.['2021']?.[0]?.['end'])
-            ) || 'N/A'}
-        </p>
-        <p className="Home__year-column">
-          {'£' +
-            nfObject.format(
-              Number(allBalances?.['1']?.['2022']?.[0]?.['end']) +
-                Number(allBalances?.['2']?.['2022']?.[0]?.['end']) +
-                Number(allBalances?.['3']?.['2022']?.[0]?.['end']) +
-                Number(allBalances?.['4']?.['2022']?.[0]?.['end']) +
-                Number(allBalances?.['5']?.['2022']?.[0]?.['end'])
-            ) || 'N/A'}
-        </p>
-        <p className="Home__year-column">
-          {'£' +
-            nfObject.format(
-              Number(allBalances?.['1']?.['2023']?.[0]?.['end']) +
-                Number(allBalances?.['2']?.['2023']?.[0]?.['end']) +
-                Number(allBalances?.['3']?.['2023']?.[0]?.['end']) +
-                Number(allBalances?.['4']?.['2023']?.[0]?.['end']) +
-                Number(allBalances?.['5']?.['2023']?.[0]?.['end'])
-            ) || 'N/A'}
-        </p>
-        <p className="Home__year-column">
-          {'£' +
-            nfObject.format(
-              Number(allBalances?.['1']?.['2024']?.[0]?.['end']) +
-                Number(allBalances?.['2']?.['2024']?.[0]?.['end']) +
-                Number(allBalances?.['3']?.['2024']?.[0]?.['end']) +
-                Number(allBalances?.['4']?.['2024']?.[0]?.['end']) +
-                Number(allBalances?.['5']?.['2024']?.[0]?.['end'])
-            ) || 'N/A'}
-        </p>
-        <p className="Home__year-column">Total</p>
-        <p className="Home__year-column">Total</p>
-      </div>
-
-      <form onSubmit={(e) => addAccount(e)}>
-        <label name="accName">Account Name</label>
-        <input name="accName" id="accName" />
-
-        <button type="submit">Submit</button>
-      </form>
-    </>
-  );
-};
-
-export default Home;
+            </div> */
+}
