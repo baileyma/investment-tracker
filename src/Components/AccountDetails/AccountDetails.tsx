@@ -5,10 +5,30 @@ import './AccountDetails.scss';
 import { Link } from 'react-router-dom';
 
 const AccountDetails = () => {
-  const [payments, setPayments] = useState('');
+  const [payments, setPayments] = useState([]);
   const [balances, setBalances] = useState('');
   const [accounts, setAccounts] = useState('');
   const [XIRR, setXIRR] = useState('');
+
+  payments.sort((a, b) => {
+    return new Date(a.when) - new Date(b.when);
+  });
+
+  let total = 0;
+  let deposits = 0;
+  let withdrawals = 0;
+
+  if (payments.length) {
+    total = payments.reduce((acc, cur) => {
+      return acc + Number(cur.amount);
+    }, 0);
+    deposits = payments.reduce((acc, cur) => {
+      return Number(cur.amount) >= 0 ? (acc += Number(cur.amount)) : (acc += 0);
+    }, 0);
+    withdrawals = payments.reduce((acc, cur) => {
+      return Number(cur.amount) < 0 ? (acc += Number(cur.amount)) : (acc += 0);
+    }, 0);
+  }
 
   const { year, id } = useParams();
 
@@ -91,11 +111,13 @@ const AccountDetails = () => {
 
   const postPayment = async (event) => {
     event.preventDefault();
+
     const paymentObj = {
       amount: event.target.amount.value,
       month: event.target.month.value,
       day: event.target.day.value,
     };
+    console.log(paymentObj);
     const ID = await axios.post(
       `http://localhost:8080/updates/payment/${id}/${year}`,
       paymentObj
@@ -149,7 +171,7 @@ const AccountDetails = () => {
       <p className="Details__last-updated">
         Latest balance:{' '}
         {balances[0]?.day && balances[0]?.month
-          ? `${balances[0]?.day}/${balances[0]?.month}/${year}`
+          ? `${balances[0]?.day + 1}/${balances[0]?.month + 1}/${year}`
           : 'N/A'}
       </p>
       <Link to={`/accounts/${id}/${+year + 1}`}>
@@ -243,37 +265,37 @@ const AccountDetails = () => {
               <option disabled selected>
                 ---Day---
               </option>
-              <option value={0}>1</option>
-              <option value={1}>2</option>
-              <option value={2}>3</option>
-              <option value={3}>4</option>
-              <option value={4}>5</option>
-              <option value={5}>6</option>
-              <option value={6}>7</option>
-              <option value={7}>8</option>
-              <option value={8}>9</option>
-              <option value={9}>10</option>
-              <option value={10}>11</option>
-              <option value={11}>12</option>
-              <option value={12}>13</option>
-              <option value={13}>14</option>
-              <option value={14}>15</option>
-              <option value={15}>16</option>
-              <option value={16}>17</option>
-              <option value={17}>18</option>
-              <option value={18}>19</option>
-              <option value={19}>20</option>
-              <option value={20}>21</option>
-              <option value={21}>22</option>
-              <option value={22}>23</option>
-              <option value={23}>24</option>
-              <option value={24}>25</option>
-              <option value={25}>26</option>
-              <option value={26}>27</option>
-              <option value={27}>28</option>
-              <option value={28}>29</option>
-              <option value={29}>30</option>
-              <option value={30}>31</option>
+              <option value={1}>1</option>
+              <option value={2}>2</option>
+              <option value={3}>3</option>
+              <option value={4}>4</option>
+              <option value={5}>5</option>
+              <option value={6}>6</option>
+              <option value={7}>7</option>
+              <option value={8}>8</option>
+              <option value={9}>9</option>
+              <option value={10}>10</option>
+              <option value={11}>11</option>
+              <option value={12}>12</option>
+              <option value={13}>13</option>
+              <option value={14}>14</option>
+              <option value={15}>15</option>
+              <option value={16}>16</option>
+              <option value={17}>17</option>
+              <option value={18}>18</option>
+              <option value={19}>19</option>
+              <option value={20}>20</option>
+              <option value={21}>21</option>
+              <option value={22}>22</option>
+              <option value={23}>23</option>
+              <option value={24}>24</option>
+              <option value={25}>25</option>
+              <option value={26}>26</option>
+              <option value={27}>27</option>
+              <option value={28}>28</option>
+              <option value={29}>29</option>
+              <option value={30}>30</option>
+              <option value={31}>31</option>
             </select>
             <button type="submit">Submit</button>
           </form>
@@ -343,42 +365,51 @@ const AccountDetails = () => {
                 <option disabled selected>
                   ---Day---
                 </option>
-                <option value={0}>1</option>
-                <option value={1}>2</option>
-                <option value={2}>3</option>
-                <option value={3}>4</option>
-                <option value={4}>5</option>
-                <option value={5}>6</option>
-                <option value={6}>7</option>
-                <option value={7}>8</option>
-                <option value={8}>9</option>
-                <option value={9}>10</option>
-                <option value={10}>11</option>
-                <option value={11}>12</option>
-                <option value={12}>13</option>
-                <option value={13}>14</option>
-                <option value={14}>15</option>
-                <option value={15}>16</option>
-                <option value={16}>17</option>
-                <option value={17}>18</option>
-                <option value={18}>19</option>
-                <option value={19}>20</option>
-                <option value={20}>21</option>
-                <option value={21}>22</option>
-                <option value={22}>23</option>
-                <option value={23}>24</option>
-                <option value={24}>25</option>
-                <option value={25}>26</option>
-                <option value={26}>27</option>
-                <option value={27}>28</option>
-                <option value={28}>29</option>
-                <option value={29}>30</option>
-                <option value={30}>31</option>
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+                <option value={4}>4</option>
+                <option value={5}>5</option>
+                <option value={6}>6</option>
+                <option value={7}>7</option>
+                <option value={8}>8</option>
+                <option value={9}>9</option>
+                <option value={10}>10</option>
+                <option value={11}>11</option>
+                <option value={12}>12</option>
+                <option value={13}>13</option>
+                <option value={14}>14</option>
+                <option value={15}>15</option>
+                <option value={16}>16</option>
+                <option value={17}>17</option>
+                <option value={18}>18</option>
+                <option value={19}>19</option>
+                <option value={20}>20</option>
+                <option value={21}>21</option>
+                <option value={22}>22</option>
+                <option value={23}>23</option>
+                <option value={24}>24</option>
+                <option value={25}>25</option>
+                <option value={26}>26</option>
+                <option value={27}>27</option>
+                <option value={28}>28</option>
+                <option value={29}>29</option>
+                <option value={30}>30</option>
+                <option value={31}>31</option>
               </select>
             </div>
 
             <button type="submit">Submit</button>
           </form>
+          <h2>Total net payments</h2>
+          <p>{total ? `£${nfObject.format(total)}` : 'N/A'}</p>
+          <h2>Total deposits</h2>
+          <p>{deposits ? `£${nfObject.format(deposits)}` : 'N/A'}</p>
+          <h2>Total withdrwals</h2>
+          <p>
+            {withdrawals ? `£${nfObject.format(withdrawals)}` : 'N/A'} :{' '}
+            {((withdrawals / balances[0]?.start) * 100).toFixed(2)}%
+          </p>
         </div>
       </div>
     </>

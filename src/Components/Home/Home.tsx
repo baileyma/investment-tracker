@@ -7,6 +7,48 @@ const Home = () => {
   const [accounts, setAccounts] = useState([]);
   const [returns, setReturns] = useState({});
   const [showDelete, setShowDelete] = useState({});
+  const [allBalances, setAllBalances] = useState({});
+  const [cumReturnsObject, setCumReturnsObject] = useState({});
+
+  const nfObject = new Intl.NumberFormat('en-US');
+
+  // console.log(allBalances[1]['2021'][0]['end']);
+
+  console.log(cumReturnsObject);
+
+  useEffect(() => {
+    if (Object.keys(returns).length > 0) {
+      const objFill = {};
+
+      objFill['1'] =
+        (1 + Number(returns?.['1']?.['2021']) / 100) *
+        (1 + Number(returns?.['1']?.['2022']) / 100) *
+        (1 + Number(returns?.['1']?.['2023']) / 100) *
+        (1 + Number(returns?.['1']?.['2024']) / 100);
+      objFill['2'] =
+        (1 + Number(returns?.['2']?.['2021']) / 100) *
+        (1 + Number(returns?.['2']?.['2022']) / 100) *
+        (1 + Number(returns?.['2']?.['2023']) / 100) *
+        (1 + Number(returns?.['2']?.['2024']) / 100);
+      objFill['3'] =
+        (1 + Number(returns?.['3']?.['2021']) / 100) *
+        (1 + Number(returns?.['3']?.['2022']) / 100) *
+        (1 + Number(returns?.['3']?.['2023']) / 100) *
+        (1 + Number(returns?.['3']?.['2024']) / 100);
+      objFill['4'] =
+        (1 + Number(returns?.['4']?.['2021']) / 100) *
+        (1 + Number(returns?.['4']?.['2022']) / 100) *
+        (1 + Number(returns?.['4']?.['2023']) / 100) *
+        (1 + Number(returns?.['4']?.['2024']) / 100);
+      objFill['5'] =
+        (1 + Number(returns?.['5']?.['2021']) / 100) *
+        (1 + Number(returns?.['5']?.['2022']) / 100) *
+        (1 + Number(returns?.['5']?.['2023']) / 100) *
+        (1 + Number(returns?.['5']?.['2024']) / 100);
+
+      setCumReturnsObject(objFill);
+    }
+  }, [returns]);
 
   const getAccounts = async () => {
     try {
@@ -55,7 +97,6 @@ const Home = () => {
   };
 
   const getAllReturns = async () => {
-    console.log(accounts[1].id);
     try {
       const resultingReturns = {};
 
@@ -96,6 +137,25 @@ const Home = () => {
     }
   }, [accounts]);
 
+  const getAllBalances = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/accounts/allbalances/`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error retrieving payments: ${error}`);
+    }
+  };
+
+  useEffect(() => {
+    const fetchAllBalances = async () => {
+      const response = await getAllBalances();
+      setAllBalances(response);
+    };
+    fetchAllBalances();
+  }, [accounts]);
+
   const toggleDelete = (accountID) => {
     setShowDelete((previousState) => ({
       ...previousState,
@@ -119,6 +179,8 @@ const Home = () => {
         <p className="Home__year-column">2022</p>
         <p className="Home__year-column">2023</p>
         <p className="Home__year-column">2024</p>
+        <p className="Home__year-column">2025</p>
+        <p className="Home__year-column">Since 2021</p>
       </div>
 
       {accounts.map((account) => {
@@ -182,6 +244,34 @@ const Home = () => {
                   {returns[account.id]?.[2024] + '%' || 'N/A'}
                 </p>
               </Link>
+              <Link
+                className="Home__year-column"
+                to={`/accounts/${account.id}/2025`}
+              >
+                <p
+                  className={
+                    returns[account.id]?.[2025] >= 0
+                      ? 'Home__positive-data'
+                      : 'Home__negative-data'
+                  }
+                >
+                  {returns[account.id]?.[2025] + '%' || 'N/A'}
+                </p>
+              </Link>
+              <Link
+                className="Home__year-column"
+                to={`/accounts/${account.id}/2025`}
+              >
+                <p
+                  className={
+                    (cumReturnsObject?.[account.id] - 1) * 100 >= 0
+                      ? 'Home__positive-data'
+                      : 'Home__negative-data'
+                  }
+                >
+                  {(cumReturnsObject?.[account.id] * 100).toFixed(2) || 'N/A'}
+                </p>
+              </Link>
               <button
                 className="Home__delete-button"
                 onClick={() => toggleDelete(account.id)}
@@ -199,9 +289,120 @@ const Home = () => {
                 Are you sure?
               </button>
             </div>
+            <div className="Home__account-wrapper">
+              <p className="Home__account-column">End of year</p>
+              <Link
+                className="Home__year-column"
+                to={`/accounts/${account.id}/2021`}
+              >
+                <p>
+                  {'£' +
+                    nfObject.format(
+                      allBalances?.[account.id]?.['2021']?.[0]?.['end']
+                    ) || 'N/A'}
+                </p>
+              </Link>
+              <Link
+                className="Home__year-column"
+                to={`/accounts/${account.id}/2022`}
+              >
+                <p>
+                  {'£' +
+                    nfObject.format(
+                      allBalances?.[account.id]?.['2022']?.[0]?.['end']
+                    ) || 'N/A'}
+                </p>
+              </Link>
+              <Link
+                className="Home__year-column"
+                to={`/accounts/${account.id}/2023`}
+              >
+                <p>
+                  {'£' +
+                    nfObject.format(
+                      allBalances?.[account.id]?.['2023']?.[0]?.['end']
+                    ) || 'N/A'}
+                </p>
+              </Link>
+              <Link
+                className="Home__year-column"
+                to={`/accounts/${account.id}/2024`}
+              >
+                <p>
+                  {'£' +
+                    nfObject.format(
+                      allBalances?.[account.id]?.['2024']?.[0]?.['end']
+                    ) || 'N/A'}
+                </p>
+              </Link>
+              <Link
+                className="Home__year-column"
+                to={`/accounts/${account.id}/2025`}
+              >
+                <p>
+                  {'£' +
+                    nfObject.format(
+                      allBalances?.[account.id]?.['2024']?.[0]?.['end']
+                    ) || 'N/A'}
+                </p>
+              </Link>
+              <Link
+                className="Home__year-column"
+                to={`/accounts/${account.id}/2025`}
+              >
+                <p>{'equiv annual compound' || 'N/A'}</p>
+              </Link>
+            </div>
           </>
         );
       })}
+
+      <div className="Home__account-wrapper">
+        <p className="Home__account-column">Total</p>
+
+        <p className="Home__year-column">
+          {'£' +
+            nfObject.format(
+              Number(allBalances?.['1']?.['2021']?.[0]?.['end']) +
+                Number(allBalances?.['2']?.['2021']?.[0]?.['end']) +
+                Number(allBalances?.['3']?.['2021']?.[0]?.['end']) +
+                Number(allBalances?.['4']?.['2021']?.[0]?.['end']) +
+                Number(allBalances?.['5']?.['2021']?.[0]?.['end'])
+            ) || 'N/A'}
+        </p>
+        <p className="Home__year-column">
+          {'£' +
+            nfObject.format(
+              Number(allBalances?.['1']?.['2022']?.[0]?.['end']) +
+                Number(allBalances?.['2']?.['2022']?.[0]?.['end']) +
+                Number(allBalances?.['3']?.['2022']?.[0]?.['end']) +
+                Number(allBalances?.['4']?.['2022']?.[0]?.['end']) +
+                Number(allBalances?.['5']?.['2022']?.[0]?.['end'])
+            ) || 'N/A'}
+        </p>
+        <p className="Home__year-column">
+          {'£' +
+            nfObject.format(
+              Number(allBalances?.['1']?.['2023']?.[0]?.['end']) +
+                Number(allBalances?.['2']?.['2023']?.[0]?.['end']) +
+                Number(allBalances?.['3']?.['2023']?.[0]?.['end']) +
+                Number(allBalances?.['4']?.['2023']?.[0]?.['end']) +
+                Number(allBalances?.['5']?.['2023']?.[0]?.['end'])
+            ) || 'N/A'}
+        </p>
+        <p className="Home__year-column">
+          {'£' +
+            nfObject.format(
+              Number(allBalances?.['1']?.['2024']?.[0]?.['end']) +
+                Number(allBalances?.['2']?.['2024']?.[0]?.['end']) +
+                Number(allBalances?.['3']?.['2024']?.[0]?.['end']) +
+                Number(allBalances?.['4']?.['2024']?.[0]?.['end']) +
+                Number(allBalances?.['5']?.['2024']?.[0]?.['end'])
+            ) || 'N/A'}
+        </p>
+        <p className="Home__year-column">Total</p>
+        <p className="Home__year-column">Total</p>
+      </div>
 
       <form onSubmit={(e) => addAccount(e)}>
         <label name="accName">Account Name</label>
