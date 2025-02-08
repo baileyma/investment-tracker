@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 const AccountDetails = () => {
   const [payments, setPayments] = useState([]);
   const [balances, setBalances] = useState('');
-  const [accounts, setAccounts] = useState('');
+  const [accounts, setAccounts] = useState({});
   const [XIRR, setXIRR] = useState('');
 
   payments.sort((a, b) => {
@@ -69,7 +69,6 @@ const AccountDetails = () => {
   }, [id, year]);
 
   const getBalances = async () => {
-    console.log('this gets called');
     try {
       const response = await axios.get(
         `http://localhost:8080/accounts/balances/${id}/${year}`
@@ -162,7 +161,8 @@ const AccountDetails = () => {
     return ID;
   };
 
-  if (!accounts) {
+  // problem when you make 2026 or a new account, it starts empty so then page won't load
+  if (!Object.keys(accounts).length || !balances.length) {
     return <h2>Loading....</h2>;
   }
 
@@ -171,7 +171,7 @@ const AccountDetails = () => {
       <p className="Details__last-updated">
         Latest balance:{' '}
         {balances[0]?.day && balances[0]?.month
-          ? `${balances[0]?.day + 1}/${balances[0]?.month + 1}/${year}`
+          ? `${balances[0]?.day}/${balances[0]?.month}/${year}`
           : 'N/A'}
       </p>
       <Link to={`/accounts/${id}/${+year + 1}`}>
@@ -193,7 +193,7 @@ const AccountDetails = () => {
 
       <div className="Details__title-wrapper">
         <h2 className="Details__title">
-          Account: <br /> {accounts[Number(id - 1)].name}{' '}
+          Account: <br /> {accounts?.[id]?.name}{' '}
         </h2>
         <h2 className="Details__year">
           Year: <br /> {year}{' '}
@@ -246,18 +246,9 @@ const AccountDetails = () => {
               <option disabled selected>
                 ---Month---
               </option>
-              <option value={0}>1</option>
-              <option value={1}>2</option>
-              <option value={2}>3</option>
-              <option value={3}>4</option>
-              <option value={4}>5</option>
-              <option value={5}>6</option>
-              <option value={6}>7</option>
-              <option value={7}>8</option>
-              <option value={8}>9</option>
-              <option value={9}>10</option>
-              <option value={10}>11</option>
-              <option value={11}>12</option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                <option value={month}>{month}</option>
+              ))}
             </select>
 
             <label name="day">Day</label>
@@ -265,37 +256,9 @@ const AccountDetails = () => {
               <option disabled selected>
                 ---Day---
               </option>
-              <option value={1}>1</option>
-              <option value={2}>2</option>
-              <option value={3}>3</option>
-              <option value={4}>4</option>
-              <option value={5}>5</option>
-              <option value={6}>6</option>
-              <option value={7}>7</option>
-              <option value={8}>8</option>
-              <option value={9}>9</option>
-              <option value={10}>10</option>
-              <option value={11}>11</option>
-              <option value={12}>12</option>
-              <option value={13}>13</option>
-              <option value={14}>14</option>
-              <option value={15}>15</option>
-              <option value={16}>16</option>
-              <option value={17}>17</option>
-              <option value={18}>18</option>
-              <option value={19}>19</option>
-              <option value={20}>20</option>
-              <option value={21}>21</option>
-              <option value={22}>22</option>
-              <option value={23}>23</option>
-              <option value={24}>24</option>
-              <option value={25}>25</option>
-              <option value={26}>26</option>
-              <option value={27}>27</option>
-              <option value={28}>28</option>
-              <option value={29}>29</option>
-              <option value={30}>30</option>
-              <option value={31}>31</option>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                <option value={day}>{day}</option>
+              ))}
             </select>
             <button type="submit">Submit</button>
           </form>
@@ -343,18 +306,10 @@ const AccountDetails = () => {
                 <option disabled selected>
                   ---Month---
                 </option>
-                <option value={0}>1</option>
-                <option value={1}>2</option>
-                <option value={2}>3</option>
-                <option value={3}>4</option>
-                <option value={4}>5</option>
-                <option value={5}>6</option>
-                <option value={6}>7</option>
-                <option value={7}>8</option>
-                <option value={8}>9</option>
-                <option value={9}>10</option>
-                <option value={10}>11</option>
-                <option value={11}>12</option>
+
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                  <option value={month}>{month}</option>
+                ))}
               </select>
             </div>
 
@@ -365,37 +320,9 @@ const AccountDetails = () => {
                 <option disabled selected>
                   ---Day---
                 </option>
-                <option value={1}>1</option>
-                <option value={2}>2</option>
-                <option value={3}>3</option>
-                <option value={4}>4</option>
-                <option value={5}>5</option>
-                <option value={6}>6</option>
-                <option value={7}>7</option>
-                <option value={8}>8</option>
-                <option value={9}>9</option>
-                <option value={10}>10</option>
-                <option value={11}>11</option>
-                <option value={12}>12</option>
-                <option value={13}>13</option>
-                <option value={14}>14</option>
-                <option value={15}>15</option>
-                <option value={16}>16</option>
-                <option value={17}>17</option>
-                <option value={18}>18</option>
-                <option value={19}>19</option>
-                <option value={20}>20</option>
-                <option value={21}>21</option>
-                <option value={22}>22</option>
-                <option value={23}>23</option>
-                <option value={24}>24</option>
-                <option value={25}>25</option>
-                <option value={26}>26</option>
-                <option value={27}>27</option>
-                <option value={28}>28</option>
-                <option value={29}>29</option>
-                <option value={30}>30</option>
-                <option value={31}>31</option>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                  <option value={day}>{day}</option>
+                ))}
               </select>
             </div>
 

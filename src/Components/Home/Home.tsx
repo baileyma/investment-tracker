@@ -3,8 +3,10 @@ import axios from 'axios';
 import './Home.scss';
 import { Link } from 'react-router-dom';
 
+//22 and 82
+
 const Home = () => {
-  const [accounts, setAccounts] = useState([]);
+  const [accounts, setAccounts] = useState({});
   const [returns, setReturns] = useState({});
   const [showDelete, setShowDelete] = useState({});
   const [allBalances, setAllBalances] = useState({});
@@ -12,44 +14,22 @@ const Home = () => {
 
   const nfObject = new Intl.NumberFormat('en-US');
 
-  console.log(cumReturnsObject);
-
   // could i make this dynamic by calling from backend or setting to current datetime property that records when there is a new year?
   const yearsArray = [2021, 2022, 2023, 2024, 2025];
 
   useEffect(() => {
-    if (Object.keys(returns).length > 0) {
+    if (Object.keys(accounts).length > 0) {
       const objFill = {};
 
-      objFill['1'] =
-        (1 + Number(returns?.['1']?.['2021']) / 100) *
-        (1 + Number(returns?.['1']?.['2022']) / 100) *
-        (1 + Number(returns?.['1']?.['2023']) / 100) *
-        (1 + Number(returns?.['1']?.['2024']) / 100);
-      objFill['2'] =
-        (1 + Number(returns?.['2']?.['2021']) / 100) *
-        (1 + Number(returns?.['2']?.['2022']) / 100) *
-        (1 + Number(returns?.['2']?.['2023']) / 100) *
-        (1 + Number(returns?.['2']?.['2024']) / 100);
-      objFill['3'] =
-        (1 + Number(returns?.['3']?.['2021']) / 100) *
-        (1 + Number(returns?.['3']?.['2022']) / 100) *
-        (1 + Number(returns?.['3']?.['2023']) / 100) *
-        (1 + Number(returns?.['3']?.['2024']) / 100);
-      objFill['4'] =
-        (1 + Number(returns?.['4']?.['2021']) / 100) *
-        (1 + Number(returns?.['4']?.['2022']) / 100) *
-        (1 + Number(returns?.['4']?.['2023']) / 100) *
-        (1 + Number(returns?.['4']?.['2024']) / 100);
-      objFill['5'] =
-        (1 + Number(returns?.['5']?.['2021']) / 100) *
-        (1 + Number(returns?.['5']?.['2022']) / 100) *
-        (1 + Number(returns?.['5']?.['2023']) / 100) *
-        (1 + Number(returns?.['5']?.['2024']) / 100);
-
+      Object.keys(accounts).forEach((accountID) => {
+        objFill[accountID] = 1;
+        yearsArray.forEach((year) => {
+          objFill[accountID] *= 1 + Number(returns?.[accountID]?.[year]) / 100;
+        });
+      });
       setCumReturnsObject(objFill);
     }
-  }, [returns]);
+  }, [accounts, returns]);
 
   const getAccounts = async () => {
     try {
@@ -101,10 +81,12 @@ const Home = () => {
     try {
       const resultingReturns = {};
 
-      for (let i = 0; i < accounts.length; i++) {
-        const IDArg: number = accounts[i].id;
-        resultingReturns[IDArg] = await getReturns(IDArg);
-      }
+      await Promise.all(
+        Object.keys(accounts).map(async (accountID) => {
+          resultingReturns[accountID] = await getReturns(accountID);
+        })
+      );
+
       console.log(resultingReturns);
       return resultingReturns;
     } catch (error) {
@@ -125,7 +107,7 @@ const Home = () => {
   }, []); // Runs only once on mount
 
   useEffect(() => {
-    if (accounts.length > 0) {
+    if (Object.keys(accounts).length > 0) {
       const fetchAllReturns = async () => {
         try {
           const responseReturns = await getAllReturns();
@@ -164,110 +146,83 @@ const Home = () => {
     }));
   };
 
-  // if (!accounts.length || Object.keys(returns).length === 0) {
-  //   return <h2>Loading...</h2>;
-  // }
+  console.log(allBalances);
+
+  if (!Object.keys(accounts).length || Object.keys(returns).length === 0) {
+    return <h2>Loading...</h2>;
+  }
 
   return (
     <>
-      <h2>Home</h2>
       <h2>Accounts</h2>
+      {/* Loop creating column names */}
       <div className="Home__account-wrapper">
         <p className="Home__account-column">Account Name</p>
         {yearsArray.map((year) => (
-          <p className="Home__year-column">{year}</p>
+          <p key={year} className="Home__year-column">
+            {year}
+          </p>
         ))}
         <p className="Home__year-column">Since 2021</p>
       </div>
-      {accounts.map((account) => (
-        <div className="Home__account-wrapper">
-          <p key={account.id} className="Home__account-column">
-            {account.name}
-          </p>
+      {/* Loop creating rows showing each year's returns */}
+      {Object.keys(accounts).map((accountId) => (
+        <>
+          <div key={accounts[accountId]?.id} className="Home__account-wrapper">
+            <p className="Home__account-column">{accounts[accountId]?.name}</p>
 
-          {yearsArray.map((year) => (
-            <Link
-              className="Home__year-column"
-              to={`/accounts/${account.id}/${year}`}
-            >
-              <p
-                className={
-                  returns[account.id]?.[year] >= 0
-                    ? 'Home__positive-data'
-                    : 'Home__negative-data'
-                }
+            {yearsArray.map((year) => (
+              <Link
+                key={`${accountId}-${year}`}
+                className="Home__year-column"
+                to={`/accounts/${accounts[accountId]?.id}/${year}`}
               >
-                {returns[account.id]?.[year] + '%' || 'N/A'}
-              </p>
-            </Link>
-          ))}
-          <div className="Home__account-wrapper">
-            <p className="Home__account-column">End of year</p>
-            <Link
-              className="Home__year-column"
-              to={`/accounts/${account.id}/2021`}
+                <p>
+                  {'£' +
+                    nfObject.format(
+                      allBalances?.[accounts[accountId]?.id]?.[year]?.[0]?.[
+                        'end'
+                      ]
+                    ) || 'N/A'}
+                </p>
+                <p
+                  className={
+                    returns[accounts[accountId]?.id]?.[year] >= 0
+                      ? 'Home__positive-data'
+                      : 'Home__negative-data'
+                  }
+                >
+                  {returns[accounts[accountId]?.id]?.[year] + '%' || 'N/A'}
+                </p>
+              </Link>
+            ))}
+
+            <p className="Home__cumret-column">
+              {Number(
+                nfObject.format(cumReturnsObject[accounts[accountId]?.id] * 100)
+              ).toFixed(2)}
+            </p>
+            <button
+              className="Home__delete-button"
+              onClick={() => toggleDelete(accounts[accountId]?.id)}
             >
-              <p>
-                {'£' +
-                  nfObject.format(
-                    allBalances?.[account.id]?.['2021']?.[0]?.['end']
-                  ) || 'N/A'}
-              </p>
-            </Link>
-            <Link
-              className="Home__year-column"
-              to={`/accounts/${account.id}/2022`}
+              Delete
+            </button>
+
+            <button
+              className={
+                showDelete[accounts[accountId]?.id]
+                  ? 'Home__delete-button'
+                  : 'Home__delete-button--hidden'
+              }
+              onClick={() => deleteAccount(accounts[accountId]?.id)}
             >
-              <p>
-                {'£' +
-                  nfObject.format(
-                    allBalances?.[account.id]?.['2022']?.[0]?.['end']
-                  ) || 'N/A'}
-              </p>
-            </Link>
-            <Link
-              className="Home__year-column"
-              to={`/accounts/${account.id}/2023`}
-            >
-              <p>
-                {'£' +
-                  nfObject.format(
-                    allBalances?.[account.id]?.['2023']?.[0]?.['end']
-                  ) || 'N/A'}
-              </p>
-            </Link>
-            <Link
-              className="Home__year-column"
-              to={`/accounts/${account.id}/2024`}
-            >
-              <p>
-                {'£' +
-                  nfObject.format(
-                    allBalances?.[account.id]?.['2024']?.[0]?.['end']
-                  ) || 'N/A'}
-              </p>
-            </Link>
-            <Link
-              className="Home__year-column"
-              to={`/accounts/${account.id}/2025`}
-            >
-              <p>
-                {'£' +
-                  nfObject.format(
-                    allBalances?.[account.id]?.['2024']?.[0]?.['end']
-                  ) || 'N/A'}
-              </p>
-            </Link>
-            <Link
-              className="Home__year-column"
-              to={`/accounts/${account.id}/2025`}
-            >
-              <p>{'TBC' || 'N/A'}</p>
-            </Link>
+              Are you sure?
+            </button>
           </div>
-        </div>
+        </>
       ))}
-      ;
+
       <div className="Home__account-wrapper">
         <p className="Home__account-column">Total</p>
 
@@ -275,13 +230,14 @@ const Home = () => {
           <p key={year} className="Home__year-column">
             {'£' +
               nfObject.format(
-                Object.keys(allBalances).reduce(
-                  (sum, accountId) =>
-                    sum +
-                      Number(allBalances?.[accountId]?.[year]?.[0]?.['end']) ||
-                    0,
-                  0
-                )
+                Object.keys(allBalances).reduce((sum, accountId) => {
+                  const balance =
+                    allBalances?.[accountId]?.[year]?.[0]?.['end'];
+
+                  return balance !== undefined && balance !== null
+                    ? sum + Number(balance)
+                    : sum;
+                }, 0)
               ) || 'N/A'}
           </p>
         ))}
@@ -299,39 +255,3 @@ const Home = () => {
 };
 
 export default Home;
-
-{
-  /* <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2025`}
-              >
-                <p
-                  className={
-                    (cumReturnsObject?.[account.id] - 1) * 100 >= 0
-                      ? 'Home__positive-data'
-                      : 'Home__negative-data'
-                  }
-                >
-                  {(cumReturnsObject?.[account.id] * 100).toFixed(2) || 'N/A'}
-                </p>
-              </Link>
-              <button
-                className="Home__delete-button"
-                onClick={() => toggleDelete(account.id)}
-              >
-                Delete
-              </button>
-
-
-              <button
-                className={
-                  showDelete[account.id]
-                    ? 'Home__delete-button'
-                    : 'Home__delete-button--hidden'
-                }
-                onClick={() => deleteAccount(account.id)}
-              >
-                Are you sure?
-              </button>
-            </div> */
-}

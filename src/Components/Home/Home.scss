@@ -26,6 +26,17 @@
     }
   }
 
+  &__cumret-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 10%;
+    border: dashed 1px black;
+    text-decoration: none;
+    color: black;
+    margin: 0;
+  }
+
   &__positive-data {
     color: green;
   }
