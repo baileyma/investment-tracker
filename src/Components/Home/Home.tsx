@@ -158,18 +158,26 @@ const Home = () => {
       {/* Loop creating column names */}
       <div className="Home__account-wrapper">
         <p className="Home__account-column">Account Name</p>
+        <p className="Home__year-column">Jan 2021</p>
         {yearsArray.map((year) => (
           <p key={year} className="Home__year-column">
             {year}
           </p>
         ))}
-        <p className="Home__year-column">Since 2021</p>
+        <p className="Home__year-column">Since Jan 2021</p>
+        <button className="Home__delete-button">XXXXX</button>
       </div>
       {/* Loop creating rows showing each year's returns */}
       {Object.keys(accounts).map((accountId) => (
         <>
           <div key={accounts[accountId]?.id} className="Home__account-wrapper">
             <p className="Home__account-column">{accounts[accountId]?.name}</p>
+            <p className="Home__year-column-centred">
+              {'£' +
+                nfObject.format(
+                  allBalances?.[accounts[accountId]?.id]?.[2021]?.[0]?.['start']
+                ) || 'N/A'}
+            </p>
 
             {yearsArray.map((year) => (
               <Link
@@ -202,11 +210,12 @@ const Home = () => {
                 nfObject.format(cumReturnsObject[accounts[accountId]?.id] * 100)
               ).toFixed(2)}
             </p>
+
             <button
               className="Home__delete-button"
               onClick={() => toggleDelete(accounts[accountId]?.id)}
             >
-              Delete
+              {showDelete[accounts[accountId]?.id] ? 'Cancel' : 'Delete'}
             </button>
 
             <button
@@ -217,7 +226,7 @@ const Home = () => {
               }
               onClick={() => deleteAccount(accounts[accountId]?.id)}
             >
-              Are you sure?
+              Click here to confirm
             </button>
           </div>
         </>
@@ -225,6 +234,19 @@ const Home = () => {
 
       <div className="Home__account-wrapper">
         <p className="Home__account-column">Total</p>
+        <p className="Home__year-column">
+          {'£' +
+            nfObject.format(
+              Object.keys(allBalances).reduce((sum, accountId) => {
+                const balance =
+                  allBalances?.[accountId]?.[2021]?.[0]?.['start'];
+
+                return balance !== undefined && balance !== null
+                  ? sum + Number(balance)
+                  : sum;
+              }, 0)
+            ) || 'N/A'}
+        </p>
 
         {yearsArray.map((year) => (
           <p key={year} className="Home__year-column">
@@ -243,6 +265,7 @@ const Home = () => {
         ))}
 
         <p className="Home__year-column">Total</p>
+        <button className="Home__delete-button">XXXXX</button>
       </div>
       <form onSubmit={(e) => addAccount(e)}>
         <label name="accName">Account Name</label>

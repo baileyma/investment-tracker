@@ -24,6 +24,18 @@
     &:active {
       background-color: blue;
     }
+
+    &-centred {
+      width: 10%;
+      text-align: center;
+      border: dashed 1px black;
+      text-decoration: none;
+      color: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin: 0;
+    }
   }
 
   &__cumret-column {
