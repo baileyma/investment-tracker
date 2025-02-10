@@ -43,6 +43,7 @@ const Home = () => {
   const addAccount = async (e) => {
     const accountObj = {
       accName: e.target.accName.value,
+      startValue: e.target.startVal.value,
     };
     try {
       const ID = await axios.post('http://localhost:8080/accounts', accountObj);
@@ -270,6 +271,8 @@ const Home = () => {
       <form onSubmit={(e) => addAccount(e)}>
         <label name="accName">Account Name</label>
         <input name="accName" id="accName" />
+        <label name="startVal">Jan 2021 Value</label>
+        <input name="startVal" id="startVal" type="number" />
 
         <button type="submit">Submit</button>
       </form>

@@ -1,9 +1,46 @@
 .Details {
+  &__last-updated {
+    text-align: center;
+  }
+
+  &__title-wrapper {
+    text-align: center;
+    border: solid 1px black;
+    width: 880px;
+    margin: auto;
+  }
+
+  &__title-subwrap {
+  }
+
+  &__button {
+  }
+
+  &__title {
+    font-size: 2rem;
+  }
+
+  &__overview-button {
+    align-self: flex-start;
+  }
+
   &__Main {
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    justify-content: space-between;
     column-gap: 1rem;
+    width: 880px;
+    margin: auto;
+  }
+
+  &__First {
+    border: 1px solid black;
+    width: 25rem;
+  }
+
+  &__balance-list {
+    display: flex;
+    flex-direction: column;
   }
 
   &__Editing {
@@ -13,21 +50,52 @@
     column-gap: 5rem;
   }
 
-  &__title-wrapper {
-    text-align: center;
-    border: solid 1px black;
+  &__popup {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
   }
 
-  &__title-subwrap {
-  }
+  &__popup-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-self: center;
+    padding: 2rem;
+    position: absolute;
 
-  &__overview-button {
-    align-self: flex-start;
-  }
-
-  &__First {
+    width: 30%;
+    height: 30%;
+    background-color: white;
     border: 1px solid black;
-    width: 25rem;
+  }
+
+  &__popup-form-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    column-gap: 2rem;
+  }
+
+  &__popup-title {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__popup-close {
+    cursor: pointer;
+    font-size: 1.5rem;
+    background: none;
+    position: relative;
+    top: 0;
+    right: 0.1rem;
   }
 
   &__Analysis {
@@ -35,8 +103,9 @@
     flex-direction: column;
     border: 1px solid black;
     width: 25rem;
-    justify-content: center;
-    align-items: center;
+    padding-left: 1rem;
+
+    align-items: flex-start;
   }
 
   &__Edit-balances {
@@ -49,24 +118,20 @@
     border: 1px solid black;
   }
 
-  &__last-updated {
-    text-align: center;
-  }
-
-  &__buttons-wrapper {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    border-top: solid 1px black;
-  }
-
   &__title-wrapper {
     display: flex;
     justify-content: space-around;
     align-items: center;
   }
-  &__title {
-    font-size: 2rem;
+
+  &__Analysis-property {
+    width: 60%;
+  }
+
+  &__Analysis-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
   }
 
   &__year {
@@ -95,14 +160,42 @@
 
   &__payment-item {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   &__deposited {
     color: green;
+    width: 85%;
+  }
+
+  &__addpayment-button {
+    width: 120px;
+    height: 50px;
+    align-self: center;
+    cursor: pointer;
+  }
+
+  &__balance-item {
+    width: 85%;
+  }
+
+  &__balance-list {
+    padding-left: 1rem;
+  }
+
+  &__payment-button {
+    width: 60px;
+    cursor: pointer;
+  }
+
+  &__balance-list-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
   }
 
   &__withdrawn {
     color: red;
+    width: 85%;
   }
 }
