@@ -3,10 +3,33 @@ import axios from 'axios';
 import './Home.scss';
 import { Link } from 'react-router-dom';
 
+//22 and 82
+
 const Home = () => {
-  const [accounts, setAccounts] = useState([]);
+  const [accounts, setAccounts] = useState({});
   const [returns, setReturns] = useState({});
   const [showDelete, setShowDelete] = useState({});
+  const [allBalances, setAllBalances] = useState({});
+  const [cumReturnsObject, setCumReturnsObject] = useState({});
+
+  const nfObject = new Intl.NumberFormat('en-US');
+
+  // could i make this dynamic by calling from backend or setting to current datetime property that records when there is a new year?
+  const yearsArray = [2021, 2022, 2023, 2024, 2025];
+
+  useEffect(() => {
+    if (Object.keys(accounts).length > 0) {
+      const objFill = {};
+
+      Object.keys(accounts).forEach((accountID) => {
+        objFill[accountID] = 1;
+        yearsArray.forEach((year) => {
+          objFill[accountID] *= 1 + Number(returns?.[accountID]?.[year]) / 100;
+        });
+      });
+      setCumReturnsObject(objFill);
+    }
+  }, [accounts, returns]);
 
   const getAccounts = async () => {
     try {
@@ -20,6 +43,7 @@ const Home = () => {
   const addAccount = async (e) => {
     const accountObj = {
       accName: e.target.accName.value,
+      startValue: e.target.startVal.value,
     };
     try {
       const ID = await axios.post('http://localhost:8080/accounts', accountObj);
@@ -55,14 +79,15 @@ const Home = () => {
   };
 
   const getAllReturns = async () => {
-    console.log(accounts[1].id);
     try {
       const resultingReturns = {};
 
-      for (let i = 0; i < accounts.length; i++) {
-        const IDArg: number = accounts[i].id;
-        resultingReturns[IDArg] = await getReturns(IDArg);
-      }
+      await Promise.all(
+        Object.keys(accounts).map(async (accountID) => {
+          resultingReturns[accountID] = await getReturns(accountID);
+        })
+      );
+
       console.log(resultingReturns);
       return resultingReturns;
     } catch (error) {
@@ -83,7 +108,7 @@ const Home = () => {
   }, []); // Runs only once on mount
 
   useEffect(() => {
-    if (accounts.length > 0) {
+    if (Object.keys(accounts).length > 0) {
       const fetchAllReturns = async () => {
         try {
           const responseReturns = await getAllReturns();
@@ -96,6 +121,25 @@ const Home = () => {
     }
   }, [accounts]);
 
+  const getAllBalances = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/accounts/allbalances/`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error retrieving payments: ${error}`);
+    }
+  };
+
+  useEffect(() => {
+    const fetchAllBalances = async () => {
+      const response = await getAllBalances();
+      setAllBalances(response);
+    };
+    fetchAllBalances();
+  }, [accounts]);
+
   const toggleDelete = (accountID) => {
     setShowDelete((previousState) => ({
       ...previousState,
@@ -103,109 +147,132 @@ const Home = () => {
     }));
   };
 
-  // if (!accounts.length || Object.keys(returns).length === 0) {
-  //   return <h2>Loading...</h2>;
-  // }
+  console.log(allBalances);
+
+  if (!Object.keys(accounts).length || Object.keys(returns).length === 0) {
+    return <h2>Loading...</h2>;
+  }
 
   return (
     <>
-      <h2>Home</h2>
-
       <h2>Accounts</h2>
-
+      {/* Loop creating column names */}
       <div className="Home__account-wrapper">
         <p className="Home__account-column">Account Name</p>
-        <p className="Home__year-column">2021</p>
-        <p className="Home__year-column">2022</p>
-        <p className="Home__year-column">2023</p>
-        <p className="Home__year-column">2024</p>
+        <p className="Home__year-column">Jan 2021</p>
+        {yearsArray.map((year) => (
+          <p key={year} className="Home__year-column">
+            {year}
+          </p>
+        ))}
+        <p className="Home__year-column">Since Jan 2021</p>
+        <button className="Home__delete-button">XXXXX</button>
       </div>
+      {/* Loop creating rows showing each year's returns */}
+      {Object.keys(accounts).map((accountId) => (
+        <>
+          <div key={accounts[accountId]?.id} className="Home__account-wrapper">
+            <p className="Home__account-column">{accounts[accountId]?.name}</p>
+            <p className="Home__year-column-centred">
+              {'£' +
+                nfObject.format(
+                  allBalances?.[accounts[accountId]?.id]?.[2021]?.[0]?.['start']
+                ) || 'N/A'}
+            </p>
 
-      {accounts.map((account) => {
-        return (
-          <>
-            <div className="Home__account-wrapper">
-              <p className="Home__account-column">{account.name}</p>
+            {yearsArray.map((year) => (
               <Link
+                key={`${accountId}-${year}`}
                 className="Home__year-column"
-                to={`/accounts/${account.id}/2021`}
+                to={`/accounts/${accounts[accountId]?.id}/${year}`}
               >
+                <p>
+                  {'£' +
+                    nfObject.format(
+                      allBalances?.[accounts[accountId]?.id]?.[year]?.[0]?.[
+                        'end'
+                      ]
+                    ) || 'N/A'}
+                </p>
                 <p
                   className={
-                    returns[account.id]?.[2021] >= 0
+                    returns[accounts[accountId]?.id]?.[year] >= 0
                       ? 'Home__positive-data'
                       : 'Home__negative-data'
                   }
                 >
-                  {returns[account.id]?.[2021] + '%' || 'N/A'}
+                  {returns[accounts[accountId]?.id]?.[year] + '%' || 'N/A'}
                 </p>
               </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2022`}
-              >
-                <p
-                  className={
-                    returns[account.id]?.[2022] >= 0
-                      ? 'Home__positive-data'
-                      : 'Home__negative-data'
-                  }
-                >
-                  {returns[account.id]?.[2022] + '%' || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2023`}
-              >
-                <p
-                  className={
-                    returns[account.id]?.[2023] >= 0
-                      ? 'Home__positive-data'
-                      : 'Home__negative-data'
-                  }
-                >
-                  {returns[account.id]?.[2023] + '%' || 'N/A'}
-                </p>
-              </Link>
-              <Link
-                className="Home__year-column"
-                to={`/accounts/${account.id}/2024`}
-              >
-                <p
-                  className={
-                    returns[account.id]?.[2024] >= 0
-                      ? 'Home__positive-data'
-                      : 'Home__negative-data'
-                  }
-                >
-                  {returns[account.id]?.[2024] + '%' || 'N/A'}
-                </p>
-              </Link>
-              <button
-                className="Home__delete-button"
-                onClick={() => toggleDelete(account.id)}
-              >
-                Delete
-              </button>
-              <button
-                className={
-                  showDelete[account.id]
-                    ? 'Home__delete-button'
-                    : 'Home__delete-button--hidden'
-                }
-                onClick={() => deleteAccount(account.id)}
-              >
-                Are you sure?
-              </button>
-            </div>
-          </>
-        );
-      })}
+            ))}
 
+            <p className="Home__cumret-column">
+              {Number(
+                nfObject.format(cumReturnsObject[accounts[accountId]?.id] * 100)
+              ).toFixed(2)}
+            </p>
+
+            <button
+              className="Home__delete-button"
+              onClick={() => toggleDelete(accounts[accountId]?.id)}
+            >
+              {showDelete[accounts[accountId]?.id] ? 'Cancel' : 'Delete'}
+            </button>
+
+            <button
+              className={
+                showDelete[accounts[accountId]?.id]
+                  ? 'Home__delete-button'
+                  : 'Home__delete-button--hidden'
+              }
+              onClick={() => deleteAccount(accounts[accountId]?.id)}
+            >
+              Click here to confirm
+            </button>
+          </div>
+        </>
+      ))}
+
+      <div className="Home__account-wrapper">
+        <p className="Home__account-column">Total</p>
+        <p className="Home__year-column">
+          {'£' +
+            nfObject.format(
+              Object.keys(allBalances).reduce((sum, accountId) => {
+                const balance =
+                  allBalances?.[accountId]?.[2021]?.[0]?.['start'];
+
+                return balance !== undefined && balance !== null
+                  ? sum + Number(balance)
+                  : sum;
+              }, 0)
+            ) || 'N/A'}
+        </p>
+
+        {yearsArray.map((year) => (
+          <p key={year} className="Home__year-column">
+            {'£' +
+              nfObject.format(
+                Object.keys(allBalances).reduce((sum, accountId) => {
+                  const balance =
+                    allBalances?.[accountId]?.[year]?.[0]?.['end'];
+
+                  return balance !== undefined && balance !== null
+                    ? sum + Number(balance)
+                    : sum;
+                }, 0)
+              ) || 'N/A'}
+          </p>
+        ))}
+
+        <p className="Home__year-column">Total</p>
+        <button className="Home__delete-button">XXXXX</button>
+      </div>
       <form onSubmit={(e) => addAccount(e)}>
         <label name="accName">Account Name</label>
         <input name="accName" id="accName" />
+        <label name="startVal">Jan 2021 Value</label>
+        <input name="startVal" id="startVal" type="number" />
 
         <button type="submit">Submit</button>
       </form>

@@ -1,7 +1,9 @@
+import './Header.scss';
+
 const Header = () => {
   return (
     <>
-      <nav>Invesment Tracker Website</nav>
+      <nav className="Header">Invesment Tracker Website</nav>
     </>
   );
 };

@@ -3,14 +3,57 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './AccountDetails.scss';
 import { Link } from 'react-router-dom';
+import Popup from 'reactjs-popup';
 
 const AccountDetails = () => {
-  const [payments, setPayments] = useState('');
+  const [payments, setPayments] = useState([]);
   const [balances, setBalances] = useState('');
-  const [accounts, setAccounts] = useState('');
+  const [accounts, setAccounts] = useState({});
+
+  const today = new Date();
+  const [dayX, setDay] = useState(today.getDate());
+  const [monthX, setMonth] = useState(today.getMonth() + 1);
+
   const [XIRR, setXIRR] = useState('');
 
   const { year, id } = useParams();
+
+  payments.sort((a, b) => {
+    return new Date(a.when) - new Date(b.when);
+  });
+
+  const monthsArray = [
+    { month: 'January', value: 0 },
+    { month: 'February', value: 1 },
+    { month: 'March', value: 2 },
+    { month: 'April', value: 3 },
+    { month: 'May', value: 4 },
+    { month: 'June', value: 5 },
+    { month: 'July', value: 6 },
+    { month: 'August', value: 7 },
+    { month: 'September', value: 8 },
+    { month: 'October', value: 9 },
+    { month: 'November', value: 10 },
+    { month: 'December', value: 11 },
+  ];
+
+  // Calculating Payments Overview figures for each account and year
+
+  let total = 0;
+  let deposits = 0;
+  let withdrawals = 0;
+
+  if (payments.length) {
+    total = payments.reduce((acc, cur) => {
+      return acc + Number(cur.amount);
+    }, 0);
+    deposits = payments.reduce((acc, cur) => {
+      return Number(cur.amount) >= 0 ? (acc += Number(cur.amount)) : (acc += 0);
+    }, 0);
+    withdrawals = payments.reduce((acc, cur) => {
+      return Number(cur.amount) < 0 ? (acc += Number(cur.amount)) : (acc += 0);
+    }, 0);
+  }
 
   const getAccounts = async () => {
     try {
@@ -49,14 +92,13 @@ const AccountDetails = () => {
   }, [id, year]);
 
   const getBalances = async () => {
-    console.log('this gets called');
     try {
       const response = await axios.get(
         `http://localhost:8080/accounts/balances/${id}/${year}`
       );
       return response.data;
     } catch (error) {
-      console.error(`Error retrieving payments: ${error}`);
+      console.error(`Error retrieving balances: ${error}`);
     }
   };
 
@@ -75,7 +117,7 @@ const AccountDetails = () => {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error retrieving payments: ${error}`);
+      console.error(`Error retrieving xirr: ${error}`);
     }
   };
 
@@ -91,11 +133,14 @@ const AccountDetails = () => {
 
   const postPayment = async (event) => {
     event.preventDefault();
+
     const paymentObj = {
       amount: event.target.amount.value,
+      dep: event.target.dep.value,
       month: event.target.month.value,
       day: event.target.day.value,
     };
+    console.log(paymentObj.dep);
     const ID = await axios.post(
       `http://localhost:8080/updates/payment/${id}/${year}`,
       paymentObj
@@ -110,12 +155,11 @@ const AccountDetails = () => {
   const postBalances = async (event) => {
     event.preventDefault();
     const balancesObj = {
-      start: event.target.start.value,
       end: event.target.end.value,
       month: event.target.month.value,
       day: event.target.day.value,
     };
-    console.log(balancesObj);
+    console.log(typeof balancesObj.end);
     const ID = await axios.post(
       `http://localhost:8080/updates/balances/${id}/${year}`,
       balancesObj
@@ -140,246 +184,335 @@ const AccountDetails = () => {
     return ID;
   };
 
-  if (!accounts) {
+  // problem when you make 2026 or a new account, it starts empty so then page won't load
+  if (!Object.keys(accounts).length || !balances.length) {
     return <h2>Loading....</h2>;
   }
 
   return (
     <>
       <p className="Details__last-updated">
-        Latest balance:{' '}
+        Last updated:{' '}
         {balances[0]?.day && balances[0]?.month
-          ? `${balances[0]?.day}/${balances[0]?.month}/${year}`
+          ? `${new Date(
+              Number(year),
+              Number(balances[0]?.month) - 1,
+              Number(balances[0]?.day)
+            ).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })}`
           : 'N/A'}
       </p>
-      <Link to={`/accounts/${id}/${+year + 1}`}>
-        <button>Next Year</button>
-      </Link>
-      <Link to={`/accounts/${id}/${+year - 1}`}>
-        <button>Previous Year</button>
-      </Link>
-      <Link to={`/accounts/${+id + 1}/${year}`}>
-        <button>Next Account</button>
-      </Link>
-      <Link to={`/accounts/${+id - 1}/${year}`}>
-        <button>Previous Account</button>
-      </Link>
-
-      <Link to={`/`}>
-        <button>Back to overview</button>
-      </Link>
-
       <div className="Details__title-wrapper">
-        <h2 className="Details__title">
-          Account: <br /> {accounts[Number(id - 1)].name}{' '}
-        </h2>
-        <h2 className="Details__year">
-          Year: <br /> {year}{' '}
-        </h2>
-      </div>
-
-      <h2 className="Details__xirr">
-        Return (XIRR): {(XIRR * 100).toFixed(2)}%
-      </h2>
-
-      <div className="Details__balance-wrapper">
-        <div>
-          <h2>
-            Balance 1st Jan: <br /> £{nfObject.format(balances[0]?.start)}
-          </h2>
-          <button>Edit</button>
-          <h2>
-            Balance {balances[0]?.day}/{balances[0]?.month}: <br /> £
-            {nfObject.format(balances[0]?.end)}
-          </h2>
-          <button>Edit</button>
+        <div className="Details__title-subwrap">
+          <Link
+            to={
+              id > 1
+                ? `/accounts/${+id - 1}/${year}`
+                : `/accounts/${+id}/${year}`
+            }
+          >
+            <button className='"Details__button'>Previous Account</button>
+          </Link>
+          <Link to={`/accounts/${+id + 1}/${year}`}>
+            <button className='"Details__button'>Next Account</button>
+          </Link>
+          <h2 className="Details__title">Account: {accounts?.[id]?.name} </h2>
         </div>
-
-        <div className="Details__balance-inputs">
-          <form className="Details__form" onSubmit={(e) => postBalances(e)}>
-            <label name="start">Jan 1st</label>
-            <input
-              name="start"
-              id="start"
-              type="number"
-              defaultValue={balances[0]?.start || 0}
-            />
-
-            <br />
-            <br />
-            <br />
-            <br />
-
-            <label name="end">Balance</label>
-
-            <input
-              name="end"
-              id="end"
-              type="number"
-              defaultValue={balances[0]?.end || 0}
-            />
-            <br />
-
-            <select name="month" id="month">
-              <option disabled selected>
-                ---Month---
-              </option>
-              <option value={0}>1</option>
-              <option value={1}>2</option>
-              <option value={2}>3</option>
-              <option value={3}>4</option>
-              <option value={4}>5</option>
-              <option value={5}>6</option>
-              <option value={6}>7</option>
-              <option value={7}>8</option>
-              <option value={8}>9</option>
-              <option value={9}>10</option>
-              <option value={10}>11</option>
-              <option value={11}>12</option>
-            </select>
-
-            <label name="day">Day</label>
-            <select name="day" id="day">
-              <option disabled selected>
-                ---Day---
-              </option>
-              <option value={0}>1</option>
-              <option value={1}>2</option>
-              <option value={2}>3</option>
-              <option value={3}>4</option>
-              <option value={4}>5</option>
-              <option value={5}>6</option>
-              <option value={6}>7</option>
-              <option value={7}>8</option>
-              <option value={8}>9</option>
-              <option value={9}>10</option>
-              <option value={10}>11</option>
-              <option value={11}>12</option>
-              <option value={12}>13</option>
-              <option value={13}>14</option>
-              <option value={14}>15</option>
-              <option value={15}>16</option>
-              <option value={16}>17</option>
-              <option value={17}>18</option>
-              <option value={18}>19</option>
-              <option value={19}>20</option>
-              <option value={20}>21</option>
-              <option value={21}>22</option>
-              <option value={22}>23</option>
-              <option value={23}>24</option>
-              <option value={24}>25</option>
-              <option value={25}>26</option>
-              <option value={26}>27</option>
-              <option value={27}>28</option>
-              <option value={28}>29</option>
-              <option value={29}>30</option>
-              <option value={30}>31</option>
-            </select>
-            <button type="submit">Submit</button>
-          </form>
+        <div className="Details__overview-button">
+          <Link to={`/`}>
+            <button className='"Details__button'>Back to overview</button>
+          </Link>
+        </div>
+        <div className="Details__title-subwrap">
+          <Link
+            to={
+              year > 2021
+                ? `/accounts/${id}/${+year - 1}`
+                : `/accounts/${id}/${+year}`
+            }
+          >
+            <button className='"Details__button'>Previous Year</button>
+          </Link>
+          <Link
+            to={
+              year < 2025
+                ? `/accounts/${id}/${+year + 1}`
+                : `/accounts/${id}/${+year}`
+            }
+          >
+            <button className='"Details__button'>Next Year</button>
+          </Link>
+          <h2 className="Details__title">Year: {year} </h2>
         </div>
       </div>
-      <div className="Details__payments-wrapper">
-        <div className="Details__payments-list">
-          <h2>Payments</h2>
-          {!payments.length && <p>No payments entered</p>}
-          {payments &&
-            payments.map((payment) => {
-              return (
-                <>
-                  <div key={payment.id} className="Details__payment-item">
-                    <h3
-                      className={
-                        payment.amount >= 0
-                          ? 'Details__deposited'
-                          : 'Details__withdrawn'
-                      }
-                    >
-                      {nfObject.format(Math.abs(payment.amount))} ---
-                      {new Date(payment.when).toLocaleDateString('en-GB')}
-                    </h3>
 
-                    <button onClick={() => deletePayment(payment.id)}>
-                      Delete
-                    </button>
-                  </div>
-                </>
-              );
-            })}
+      <div className="Details__Main">
+        <div className="Details__First">
+          <div className="Details__balance-list">
+            <div className="Details__balance-list-header">
+              <h2>Balances/payments list</h2>
+
+              <Popup
+                trigger={
+                  <button className="Details__addpayment-button">
+                    {' '}
+                    Add payment
+                  </button>
+                }
+                position="right center"
+              >
+                {(close: () => void) => (
+                  <>
+                    <div className="Details__popup">
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          postPayment(e);
+                          close();
+                        }}
+                      >
+                        <h2>Amount</h2>
+                        <button
+                          className="Details__popup-close"
+                          onClick={close}
+                        >
+                          &times;
+                        </button>
+                        <input name="amount" id="amount" type="number" />
+                        <br />
+                        <br />
+                        <label name="dep">Deposit or Withdrawal</label>
+                        <select name="dep" id="dep" type="boolean">
+                          <option disabled selected>
+                            ---Choose an option---
+                          </option>
+                          <option value={true}>Deposit</option>
+                          <option value={false}>Withdrawal</option>
+                        </select>
+
+                        <h2>On</h2>
+                        <select
+                          name="day"
+                          id="day"
+                          type="number"
+                          value={dayX}
+                          onChange={(e) => setDay(Number(e.target.value))}
+                        >
+                          <option disabled selected>
+                            ---Day---
+                          </option>
+                          {Array.from({ length: 31 }, (_, i) => i + 1).map(
+                            (d) => (
+                              <option key={d} value={d}>
+                                {d}
+                              </option>
+                            )
+                          )}
+                        </select>
+                        <select
+                          name="month"
+                          id="month"
+                          value={monthX}
+                          onChange={(e) => setMonth(Number(e.target.value))}
+                        >
+                          <option disabled selected>
+                            ---Month---
+                          </option>
+                          {monthsArray.map((m) => (
+                            <option key={m.value} value={m.value}>
+                              {monthX}
+                            </option>
+                          ))}
+                        </select>
+
+                        <br />
+                        <br />
+
+                        <button type="submit">Submit</button>
+                      </form>
+                    </div>
+                  </>
+                )}
+              </Popup>
+            </div>
+
+            <h3>
+              1 January: Balance of £{nfObject.format(balances[0]?.start)}
+            </h3>
+
+            {!payments.length && <h3>No payments entered</h3>}
+
+            {payments &&
+              payments.map((payment) => {
+                return (
+                  <>
+                    <div key={payment.id} className="Details__payment-item">
+                      <h3
+                        className={
+                          payment.amount >= 0
+                            ? 'Details__deposited'
+                            : 'Details__withdrawn'
+                        }
+                      >
+                        {new Date(payment.when).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'long',
+                        })}
+                        {': '}£{nfObject.format(Math.abs(payment.amount))}{' '}
+                        {payment.amount >= 0 ? 'deposited' : 'withdrawn'}
+                      </h3>
+
+                      <button
+                        className="Details__payment-button"
+                        onClick={() => deletePayment(payment.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                );
+              })}
+
+            <div className="Details__payment-item">
+              <h3 className="Details__balance-item">
+                {`${new Date(
+                  Number(year),
+                  Number(balances[0]?.month - 1),
+                  Number(balances[0]?.day)
+                ).toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'long',
+                })}`}
+                : Balance of £{nfObject.format(balances[0]?.end)}
+              </h3>
+              <Popup
+                trigger={
+                  <button className="Details__payment-button"> Edit</button>
+                }
+                position="right center"
+              >
+                {(close: () => void) => (
+                  <>
+                    <div className="Details__popup">
+                      <form
+                        className="Details__popup-form"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          postBalances(e);
+                          close();
+                        }}
+                      >
+                        <div className="Details__popup-title">
+                          <h2>Enter Balance Date and Amount</h2>
+                          <button
+                            className="Details__popup-close"
+                            onClick={close}
+                          >
+                            &times;
+                          </button>
+                        </div>
+
+                        <div className="Details__popup-form-item">
+                          <label>Balance as of </label>
+
+                          <select
+                            name="day"
+                            id="day"
+                            value={dayX}
+                            onChange={(e) => setDay(Number(e.target.value))}
+                          >
+                            <option disabled selected>
+                              ---Day---
+                            </option>
+                            {Array.from({ length: 31 }, (_, i) => i + 1).map(
+                              (d) => (
+                                <option key={d} value={d}>
+                                  {d}
+                                </option>
+                              )
+                            )}
+                          </select>
+
+                          <select
+                            name="month"
+                            id="month"
+                            value={monthX}
+                            onChange={(e) => setMonth(Number(e.target.value))}
+                          >
+                            <option disabled selected>
+                              ---Month---
+                            </option>
+                            {monthsArray.map((m) => (
+                              <option key={m.value} value={m.value + 1}>
+                                {monthX}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <input
+                          name="end"
+                          id="end"
+                          type="number"
+                          defaultValue={balances[0]?.end || 0}
+                        />
+
+                        <button type="submit">Submit</button>
+                      </form>
+                    </div>
+                  </>
+                )}
+              </Popup>
+            </div>
+          </div>
         </div>
-        <div>
-          <h2>Add payment</h2>
-          <form onSubmit={(e) => postPayment(e)}>
-            <div className="Details__form">
-              <label name="amount">Amount</label>
-              <input name="amount" id="amount" type="number" />
-            </div>
 
-            <div className="Details__form">
-              <label name="month">Month</label>
-              <select name="month" id="month" type="number">
-                <option disabled selected>
-                  ---Month---
-                </option>
-                <option value={0}>1</option>
-                <option value={1}>2</option>
-                <option value={2}>3</option>
-                <option value={3}>4</option>
-                <option value={4}>5</option>
-                <option value={5}>6</option>
-                <option value={6}>7</option>
-                <option value={7}>8</option>
-                <option value={8}>9</option>
-                <option value={9}>10</option>
-                <option value={10}>11</option>
-                <option value={11}>12</option>
-              </select>
-            </div>
-
-            <div className="Details__form">
-              <label name="day">Day</label>
-
-              <select name="day" id="day" type="number">
-                <option disabled selected>
-                  ---Day---
-                </option>
-                <option value={0}>1</option>
-                <option value={1}>2</option>
-                <option value={2}>3</option>
-                <option value={3}>4</option>
-                <option value={4}>5</option>
-                <option value={5}>6</option>
-                <option value={6}>7</option>
-                <option value={7}>8</option>
-                <option value={8}>9</option>
-                <option value={9}>10</option>
-                <option value={10}>11</option>
-                <option value={11}>12</option>
-                <option value={12}>13</option>
-                <option value={13}>14</option>
-                <option value={14}>15</option>
-                <option value={15}>16</option>
-                <option value={16}>17</option>
-                <option value={17}>18</option>
-                <option value={18}>19</option>
-                <option value={19}>20</option>
-                <option value={20}>21</option>
-                <option value={21}>22</option>
-                <option value={22}>23</option>
-                <option value={23}>24</option>
-                <option value={24}>25</option>
-                <option value={25}>26</option>
-                <option value={26}>27</option>
-                <option value={27}>28</option>
-                <option value={28}>29</option>
-                <option value={29}>30</option>
-                <option value={30}>31</option>
-              </select>
-            </div>
-
-            <button type="submit">Submit</button>
-          </form>
+        <div className="Details__Analysis">
+          <h2>Payments overview</h2>
+          <div className="Details__Analysis-wrapper">
+            <p className="Details__Analysis-property">Total deposits </p>
+            <p>
+              {deposits ? `£${nfObject.format(deposits)}` : '£0'} (
+              {((deposits / balances[0]?.start) * 100).toFixed(2)}%)
+            </p>
+          </div>
+          <div className="Details__Analysis-wrapper">
+            <p className="Details__Analysis-property">Total withdrawals</p>
+            <p>
+              {' '}
+              {withdrawals
+                ? `£${nfObject.format(Math.abs(withdrawals))}`
+                : '£0'}{' '}
+              ({((withdrawals / balances[0]?.start) * 100).toFixed(2)}%)
+            </p>
+          </div>
+          <div className="Details__Analysis-wrapper">
+            <p className="Details__Analysis-property">Total net payments </p>
+            <p>
+              {total ? `£${nfObject.format(total)}` : '£0'} (
+              {((total / balances[0]?.start) * 100).toFixed(2)}%)
+            </p>
+          </div>
+          <h2>Returns overview</h2>
+          <div className="Details__Analysis-wrapper">
+            <p className="Details__Analysis-property">Return (XIRR) </p>
+            <p>{(XIRR * 100).toFixed(2)}%</p>
+          </div>
+          <div className="Details__Analysis-wrapper">
+            <p className="Details__Analysis-property">
+              Growth (net payments + XIRR)
+            </p>
+            <p>
+              {((total / balances[0]?.start) * 100 + XIRR * 100).toFixed(2)}%
+            </p>
+          </div>
         </div>
+      </div>
+
+      <div className="Details__Editing">
+        <div className="Details__payments-wrapper"></div>
       </div>
     </>
   );
