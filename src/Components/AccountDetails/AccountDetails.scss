@@ -11,6 +11,7 @@
   }
 
   &__title-subwrap {
+    width: 35%;
   }
 
   &__button {
@@ -27,14 +28,15 @@
   &__Main {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
-    column-gap: 1rem;
+    justify-content: space-around;
+    border: 3px solid black;
+
     width: 880px;
     margin: auto;
   }
 
   &__First {
-    border: 1px solid black;
+    border-right: 1px solid black;
     width: 25rem;
   }
 
@@ -101,21 +103,11 @@
   &__Analysis {
     display: flex;
     flex-direction: column;
-    border: 1px solid black;
+    border-left: 1px solid black;
     width: 25rem;
     padding-left: 1rem;
 
     align-items: flex-start;
-  }
-
-  &__Edit-balances {
-    width: 25rem;
-    border: 1px solid black;
-  }
-
-  &__Edit-payments {
-    width: 25rem;
-    border: 1px solid black;
   }
 
   &__title-wrapper {
@@ -173,6 +165,8 @@
     height: 50px;
     align-self: center;
     cursor: pointer;
+    margin-right: 1rem;
+    border-radius: 4px;
   }
 
   &__balance-item {
@@ -186,6 +180,8 @@
   &__payment-button {
     width: 60px;
     cursor: pointer;
+    margin-right: 1rem;
+    border-radius: 4px;
   }
 
   &__balance-list-header {

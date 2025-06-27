@@ -9,6 +9,11 @@ const AccountDetails = () => {
   const [payments, setPayments] = useState([]);
   const [balances, setBalances] = useState('');
   const [accounts, setAccounts] = useState({});
+
+  const today = new Date();
+  const [dayX, setDay] = useState(today.getDate());
+  const [monthX, setMonth] = useState(today.getMonth() + 1);
+
   const [XIRR, setXIRR] = useState('');
 
   const { year, id } = useParams();
@@ -191,7 +196,7 @@ const AccountDetails = () => {
         {balances[0]?.day && balances[0]?.month
           ? `${new Date(
               Number(year),
-              Number(balances[0]?.month),
+              Number(balances[0]?.month) - 1,
               Number(balances[0]?.day)
             ).toLocaleDateString('en-GB', {
               day: 'numeric',
@@ -202,7 +207,13 @@ const AccountDetails = () => {
       </p>
       <div className="Details__title-wrapper">
         <div className="Details__title-subwrap">
-          <Link to={`/accounts/${+id - 1}/${year}`}>
+          <Link
+            to={
+              id > 1
+                ? `/accounts/${+id - 1}/${year}`
+                : `/accounts/${+id}/${year}`
+            }
+          >
             <button className='"Details__button'>Previous Account</button>
           </Link>
           <Link to={`/accounts/${+id + 1}/${year}`}>
@@ -216,10 +227,22 @@ const AccountDetails = () => {
           </Link>
         </div>
         <div className="Details__title-subwrap">
-          <Link to={`/accounts/${id}/${+year - 1}`}>
+          <Link
+            to={
+              year > 2021
+                ? `/accounts/${id}/${+year - 1}`
+                : `/accounts/${id}/${+year}`
+            }
+          >
             <button className='"Details__button'>Previous Year</button>
           </Link>
-          <Link to={`/accounts/${id}/${+year + 1}`}>
+          <Link
+            to={
+              year < 2025
+                ? `/accounts/${id}/${+year + 1}`
+                : `/accounts/${id}/${+year}`
+            }
+          >
             <button className='"Details__button'>Next Year</button>
           </Link>
           <h2 className="Details__title">Year: {year} </h2>
@@ -271,22 +294,37 @@ const AccountDetails = () => {
                         </select>
 
                         <h2>On</h2>
-                        <select name="day" id="day" type="number">
+                        <select
+                          name="day"
+                          id="day"
+                          type="number"
+                          value={dayX}
+                          onChange={(e) => setDay(Number(e.target.value))}
+                        >
                           <option disabled selected>
                             ---Day---
                           </option>
                           {Array.from({ length: 31 }, (_, i) => i + 1).map(
-                            (day) => (
-                              <option value={day}>{day}</option>
+                            (d) => (
+                              <option key={d} value={d}>
+                                {d}
+                              </option>
                             )
                           )}
                         </select>
-                        <select name="month" id="month">
+                        <select
+                          name="month"
+                          id="month"
+                          value={monthX}
+                          onChange={(e) => setMonth(Number(e.target.value))}
+                        >
                           <option disabled selected>
                             ---Month---
                           </option>
-                          {monthsArray.map((month) => (
-                            <option value={month.value}>{month.month}</option>
+                          {monthsArray.map((m) => (
+                            <option key={m.value} value={m.value}>
+                              {monthX}
+                            </option>
                           ))}
                         </select>
 
@@ -342,7 +380,7 @@ const AccountDetails = () => {
               <h3 className="Details__balance-item">
                 {`${new Date(
                   Number(year),
-                  Number(balances[0]?.month),
+                  Number(balances[0]?.month - 1),
                   Number(balances[0]?.day)
                 ).toLocaleDateString('en-GB', {
                   day: 'numeric',
@@ -380,23 +418,37 @@ const AccountDetails = () => {
                         <div className="Details__popup-form-item">
                           <label>Balance as of </label>
 
-                          <select name="day" id="day">
+                          <select
+                            name="day"
+                            id="day"
+                            value={dayX}
+                            onChange={(e) => setDay(Number(e.target.value))}
+                          >
                             <option disabled selected>
                               ---Day---
                             </option>
                             {Array.from({ length: 31 }, (_, i) => i + 1).map(
-                              (day) => (
-                                <option value={day}>{day}</option>
+                              (d) => (
+                                <option key={d} value={d}>
+                                  {d}
+                                </option>
                               )
                             )}
                           </select>
 
-                          <select name="month" id="month">
+                          <select
+                            name="month"
+                            id="month"
+                            value={monthX}
+                            onChange={(e) => setMonth(Number(e.target.value))}
+                          >
                             <option disabled selected>
                               ---Month---
                             </option>
-                            {monthsArray.map((month) => (
-                              <option value={month.value}>{month.month}</option>
+                            {monthsArray.map((m) => (
+                              <option key={m.value} value={m.value + 1}>
+                                {monthX}
+                              </option>
                             ))}
                           </select>
                         </div>
@@ -430,14 +482,16 @@ const AccountDetails = () => {
             <p className="Details__Analysis-property">Total withdrawals</p>
             <p>
               {' '}
-              {withdrawals ? `£${nfObject.format(withdrawals)}` : '£0'} (
-              {((withdrawals / balances[0]?.start) * 100).toFixed(2)}%)
+              {withdrawals
+                ? `£${nfObject.format(Math.abs(withdrawals))}`
+                : '£0'}{' '}
+              ({((withdrawals / balances[0]?.start) * 100).toFixed(2)}%)
             </p>
           </div>
           <div className="Details__Analysis-wrapper">
             <p className="Details__Analysis-property">Total net payments </p>
             <p>
-              {total ? `£${nfObject.format(total)}` : '£0'} :(
+              {total ? `£${nfObject.format(total)}` : '£0'} (
               {((total / balances[0]?.start) * 100).toFixed(2)}%)
             </p>
           </div>
@@ -448,7 +502,7 @@ const AccountDetails = () => {
           </div>
           <div className="Details__Analysis-wrapper">
             <p className="Details__Analysis-property">
-              Growth (net payments + XIRR return)
+              Growth (net payments + XIRR)
             </p>
             <p>
               {((total / balances[0]?.start) * 100 + XIRR * 100).toFixed(2)}%
