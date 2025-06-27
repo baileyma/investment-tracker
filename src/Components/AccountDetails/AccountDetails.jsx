@@ -10,6 +10,8 @@ const AccountDetails = () => {
   const [balances, setBalances] = useState('');
   const [accounts, setAccounts] = useState({});
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const today = new Date();
   const [dayX, setDay] = useState(today.getDate());
   const [monthX, setMonth] = useState(today.getMonth() + 1);
@@ -17,10 +19,6 @@ const AccountDetails = () => {
   const [XIRR, setXIRR] = useState('');
 
   const { year, id } = useParams();
-
-  payments.sort((a, b) => {
-    return new Date(a.when) - new Date(b.when);
-  });
 
   const monthsArray = [
     { month: 'January', value: 0 },
@@ -57,7 +55,7 @@ const AccountDetails = () => {
 
   const getAccounts = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/accounts');
+      const response = await axios.get(`${apiUrl}/Accounts`);
       return response.data;
     } catch (error) {
       console.error(`Error retrieving players: ${error}`);
@@ -74,9 +72,7 @@ const AccountDetails = () => {
 
   const getPayments = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8080/accounts/payments/${id}/${year}`
-      );
+      const response = await axios.get(`${apiUrl}/Payments/${id}/year/${year}`);
       return response.data;
     } catch (error) {
       console.error(`Error retrieving payments: ${error}`);
@@ -93,9 +89,7 @@ const AccountDetails = () => {
 
   const getBalances = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8080/accounts/balances/${id}/${year}`
-      );
+      const response = await axios.get(`${apiUrl}/Balances/${id}/year/${year}`);
       return response.data;
     } catch (error) {
       console.error(`Error retrieving balances: ${error}`);
@@ -112,10 +106,9 @@ const AccountDetails = () => {
 
   const getXIRR = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8080/accounts/returns/${id}/${year}`
-      );
-      return response.data;
+      const response = await axios.get(`${apiUrl}/Returns/${id}`);
+      console.log(response.data);
+      return response.data[year];
     } catch (error) {
       console.error(`Error retrieving xirr: ${error}`);
     }
@@ -185,7 +178,7 @@ const AccountDetails = () => {
   };
 
   // problem when you make 2026 or a new account, it starts empty so then page won't load
-  if (!Object.keys(accounts).length || !balances.length) {
+  if (!Object.keys(accounts).length) {
     return <h2>Loading....</h2>;
   }
 
@@ -193,11 +186,11 @@ const AccountDetails = () => {
     <>
       <p className="Details__last-updated">
         Last updated:{' '}
-        {balances[0]?.day && balances[0]?.month
+        {balances?.day && balances?.month
           ? `${new Date(
               Number(year),
-              Number(balances[0]?.month) - 1,
-              Number(balances[0]?.day)
+              Number(balances?.month) - 1,
+              Number(balances?.day)
             ).toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'long',
@@ -219,7 +212,9 @@ const AccountDetails = () => {
           <Link to={`/accounts/${+id + 1}/${year}`}>
             <button className='"Details__button'>Next Account</button>
           </Link>
-          <h2 className="Details__title">Account: {accounts?.[id]?.name} </h2>
+          <h2 className="Details__title">
+            Account: {accounts?.[id - 1]?.name}{' '}
+          </h2>
         </div>
         <div className="Details__overview-button">
           <Link to={`/`}>
@@ -264,7 +259,7 @@ const AccountDetails = () => {
                 }
                 position="right center"
               >
-                {(close: () => void) => (
+                {(close) => (
                   <>
                     <div className="Details__popup">
                       <form
@@ -340,7 +335,8 @@ const AccountDetails = () => {
             </div>
 
             <h3>
-              1 January: Balance of £{nfObject.format(balances[0]?.start)}
+              1 January: Balance of £
+              {nfObject.format(balances?.startingBalance)}
             </h3>
 
             {!payments.length && <h3>No payments entered</h3>}
@@ -357,7 +353,7 @@ const AccountDetails = () => {
                             : 'Details__withdrawn'
                         }
                       >
-                        {new Date(payment.when).toLocaleDateString('en-GB', {
+                        {new Date(payment.date).toLocaleDateString('en-GB', {
                           day: 'numeric',
                           month: 'long',
                         })}
@@ -380,13 +376,13 @@ const AccountDetails = () => {
               <h3 className="Details__balance-item">
                 {`${new Date(
                   Number(year),
-                  Number(balances[0]?.month - 1),
-                  Number(balances[0]?.day)
+                  Number(balances?.month - 1),
+                  Number(balances?.day)
                 ).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'long',
                 })}`}
-                : Balance of £{nfObject.format(balances[0]?.end)}
+                : Balance of £{nfObject.format(balances?.endBalance)}
               </h3>
               <Popup
                 trigger={
@@ -394,7 +390,7 @@ const AccountDetails = () => {
                 }
                 position="right center"
               >
-                {(close: () => void) => (
+                {(close) => (
                   <>
                     <div className="Details__popup">
                       <form
@@ -456,7 +452,7 @@ const AccountDetails = () => {
                           name="end"
                           id="end"
                           type="number"
-                          defaultValue={balances[0]?.end || 0}
+                          defaultValue={balances?.endBalance || 0}
                         />
 
                         <button type="submit">Submit</button>
@@ -475,7 +471,7 @@ const AccountDetails = () => {
             <p className="Details__Analysis-property">Total deposits </p>
             <p>
               {deposits ? `£${nfObject.format(deposits)}` : '£0'} (
-              {((deposits / balances[0]?.start) * 100).toFixed(2)}%)
+              {((deposits / balances?.startingBalance) * 100).toFixed(2)}%)
             </p>
           </div>
           <div className="Details__Analysis-wrapper">
@@ -485,14 +481,14 @@ const AccountDetails = () => {
               {withdrawals
                 ? `£${nfObject.format(Math.abs(withdrawals))}`
                 : '£0'}{' '}
-              ({((withdrawals / balances[0]?.start) * 100).toFixed(2)}%)
+              ({((withdrawals / balances?.startingBalance) * 100).toFixed(2)}%)
             </p>
           </div>
           <div className="Details__Analysis-wrapper">
             <p className="Details__Analysis-property">Total net payments </p>
             <p>
               {total ? `£${nfObject.format(total)}` : '£0'} (
-              {((total / balances[0]?.start) * 100).toFixed(2)}%)
+              {((total / balances?.startingBalance) * 100).toFixed(2)}%)
             </p>
           </div>
           <h2>Returns overview</h2>
@@ -505,7 +501,10 @@ const AccountDetails = () => {
               Growth (net payments + XIRR)
             </p>
             <p>
-              {((total / balances[0]?.start) * 100 + XIRR * 100).toFixed(2)}%
+              {((total / balances?.startingBalance) * 100 + XIRR * 100).toFixed(
+                2
+              )}
+              %
             </p>
           </div>
         </div>

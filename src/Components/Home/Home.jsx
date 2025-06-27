@@ -66,7 +66,7 @@ const Home = () => {
     }
   };
 
-  const getReturns = async (id: number) => {
+  const getReturns = async (id) => {
     try {
       const response = await axios.get(
         `http://localhost:8080/accounts/all-returns/${id}`
